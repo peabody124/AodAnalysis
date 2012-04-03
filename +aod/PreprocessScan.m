@@ -12,11 +12,7 @@ classdef PreprocessScan < dj.Relvar & dj.AutoPopulate
         popRel = aod.Scan * aod.PreprocessMethod;
     end
     
-    methods 
-        function self = PreprocessScan(varargin)
-            self.restrict(varargin{:})
-        end
-        
+    methods (Access=protected)
         function makeTuples( this, key )
             % Not written yet
             tuple = key;
@@ -28,15 +24,22 @@ classdef PreprocessScan < dj.Relvar & dj.AutoPopulate
                 makeTuples(aod.PreprocessCell, cell);
             end
         end
+    end
+    
+    methods
+        function self = PreprocessScan(varargin)
+            self.restrict(varargin{:})
+        end
         
-        function [dat t] = getArray( this )
+        function [traces t] = getArray( this )
             % [dat t] = getArray( relvar ) -- get the preprocessed traces
             % and return as an array
             assert(count(this) == 1);
             key = fetch(this);
-            [traces dt] = fetchn(aod.PreprocessCell(key), 'trace', 'dt');
-            dat = cat(2,traces{:});
-            t = (1:size(dat,1)) * dt(1);
+            dat = fetch(aod.PreprocessCell(key), 'trace', 'dt');
+            dat = dj.struct.sort(dat,{'cell_num'});
+            traces = cat(2,dat.trace);
+            t = (1:size(traces,1)) * dat(1).dt;
         end
         
     end
